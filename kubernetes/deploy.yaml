@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: backend
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: backend
+    spec:
+      containers:
+      - image: mysql:latest
+        name: mysql
+        resources: {}
+        #ports:
+        #  - name: whoami-iternal
+        #    containerPort: 8000
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: "password"
+        imagePullPolicy: IfNotPresent
+      - image: nico989/ubuntu-flask:v1
+        name: ubuntu
+        resources: {}
+        ports:
+          - name: flask-internal-port
+            containerPort: 5000
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sleep", "3650d"]
+      volumes:
+      - name: test-volume
+        hostPath:
+        # directory location on host
+        path: /data
+        # this field is optional
+        type: Directory
+      hostname: backend
+      restartPolicy: Always    
+status: {}
