@@ -1,39 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  creationTimestamp: null
+  name: backend
+  namespace: default
   labels:
     app: backend
-  name: backend
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: backend
-  strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: backend
     spec:
       containers:
-      - image: mysql:latest
-        name: mysql
-        resources: {}
-        ports:
-          - name: mysql-iternal
-            containerPort: 3306
-        env:
-          - name: MYSQL_ROOT_PASSWORD
-            value: "password"
-        imagePullPolicy: IfNotPresent
       - image: nico989/ubuntu-flask:v1
         name: ubuntu
         resources: {}
-        ports:
-          - name: flask-internal
-            containerPort: 5000
         imagePullPolicy: IfNotPresent
         command:
         - "/bin/bash"
@@ -48,4 +33,18 @@ spec:
         persistentVolumeClaim:
           claimName: mypvc
       hostname: backend
-status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "backend"
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  type: NodePort
+  ports:
+  - port: 5000
+    nodePort: 30000
+    targetPort: 5000
+  selector:
+    app: backend
