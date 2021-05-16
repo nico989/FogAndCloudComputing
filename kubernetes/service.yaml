@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: storedb
+  labels:
+    app: backend
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -16,22 +30,35 @@ spec:
         app: backend
     spec:
       containers:
-      - image: nico989/ubuntu-flask:v1
+      - image: nico989/mysql:v1
+        name: mysql
+        resources: {}
+        ports:
+          - name: mysql-internal
+            containerPort: 3306
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            value: "password"
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+          - name: volume
+            mountPath: /var/lib/mysql/
+      - image: nico989/ubuntu-flask:v2
         name: ubuntu
         resources: {}
+        ports:
+          - name: flask-internal
+            containerPort: 5000
         imagePullPolicy: IfNotPresent
         command:
         - "/bin/bash"
         - "-ecx"
         - |
           python3 /root/Desktop/webServer/webServer.py
-        volumeMounts:
-        - name: volume
-          mountPath: /root/Desktop/
       volumes:
       - name: volume
         persistentVolumeClaim:
-          claimName: mypvc
+          claimName: storedb
       hostname: backend
 ---
 apiVersion: v1
