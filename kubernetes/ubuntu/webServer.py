@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, jsonify
 import mysql.connector
 
 app = Flask(__name__)
@@ -19,10 +19,10 @@ def index():
             cursor.execute("SELECT * FROM people;")
             result = cursor.fetchall()
         except:
-            return render_template('error-query.html')
+            return jsonify(status=400, message='Error during query')
     except:
-        return render_template('error-connection.html')
-    return render_template('index.html', content=result)
+        return jsonify(status=400, message='No connect to DB')
+    return jsonify(status=200, payload=result)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

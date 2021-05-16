@@ -43,7 +43,7 @@ spec:
         volumeMounts:
           - name: volume
             mountPath: /var/lib/mysql/
-      - image: nico989/ubuntu-flask:v2
+      - image: nico989/ubuntu-flask:v3
         name: ubuntu
         resources: {}
         ports:
@@ -54,7 +54,7 @@ spec:
         - "/bin/bash"
         - "-ecx"
         - |
-          python3 /root/Desktop/webServer/webServer.py
+          python3 /root/Desktop/webServer.py
       volumes:
       - name: volume
         persistentVolumeClaim:
