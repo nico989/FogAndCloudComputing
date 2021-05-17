@@ -3,7 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: storedb
   labels:
-    app: backend
+    app: storedb
 spec:
   storageClassName: standard
   accessModes:
