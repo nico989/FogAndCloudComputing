@@ -59,7 +59,7 @@ def start_listening(address):
     receive = ''
     dos = Dos()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('127.0.0.1', 9999))
+        s.bind((address))
         s.listen()
         print('Start listening')
         while receive != 'close':
