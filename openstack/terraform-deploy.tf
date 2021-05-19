@@ -27,8 +27,8 @@ resource "openstack_compute_secgroup_v2" "ssh_security_group" {
   description = "security group to allow ssh into instances"
 
   rule {
-    from_port   = 22
-    to_port     = 22
+    from_port   = 1
+    to_port     = 65535
     ip_protocol = "tcp"
     cidr        = "0.0.0.0/0"
   }
@@ -80,16 +80,6 @@ resource "openstack_compute_instance_v2" "instance" {
   network {
     port = element(openstack_networking_port_v2.port.*.id, count.index)
   }
-  provisioner "file" {
-    source      = "/home/marcello.meschini/FogAndCloudComputing/openstack/botnet/"
-    destination = "/home/centos"
-    connection {
-      type     = "ssh"
-      user     = "centos"
-      host     = element(openstack_networking_floatingip_v2.floatip.*.address, count.index)
-      private_key = file("/home/marcello.meschini/FogAndCloudComputing/openstack/id_rsa")
-    }
-  }
 }
 
 resource "openstack_networking_floatingip_v2" "floatip" {
@@ -102,6 +92,24 @@ resource "openstack_compute_floatingip_associate_v2" "ipassociation" {
   floating_ip = element(openstack_networking_floatingip_v2.floatip.*.address, count.index)
   instance_id = element(openstack_compute_instance_v2.instance.*.id, count.index)
 }
+
+resource "null_resource" "test" {
+  count = var.instance_num
+  provisioner "file" {
+    source      = "/home/marcello.meschini/FogAndCloudComputing/openstack/botnet/"
+    destination = "/home/centos"
+    connection {
+      type     = "ssh"
+      user     = "centos"
+      host     = element(openstack_networking_floatingip_v2.floatip.*.address, count.index)
+      private_key = file("/home/marcello.meschini/FogAndCloudComputing/openstack/id_rsa")
+    }
+  }
+  depends_on = [
+    openstack_compute_floatingip_associate_v2.ipassociation
+  ]
+}
+
 
 # Output the fixed ips after the creation
 output "instance_ips" {
