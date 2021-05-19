@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import socket
-import argparse
 import json
 import threading
 import requests
@@ -59,7 +58,7 @@ def start_listening(address):
     receive = ''
     dos = Dos()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(tuple(address))
+        s.bind(address)
         s.listen()
         print('Start listening')
         while receive != 'close':
@@ -78,11 +77,7 @@ def start_listening(address):
                     parse(receive, conn, addr, address, dos)
 
 def main():
-    parser = argparse.ArgumentParser(allow_abbrev=False)
-    parser.add_argument('-a', '--address', help='add IP address', required=True, action='store', type=str, metavar='\b')
-    parser.add_argument('-p', '--port', help='add port number', required=True, action='store', type=int, metavar='\b')
-    args = parser.parse_args()
-    address = (args.address, args.port)
+    address = (socket.gethostname(), 9999)
     start_listening(address)
    
 if __name__ == '__main__':
