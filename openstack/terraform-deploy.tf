@@ -76,9 +76,19 @@ resource "openstack_compute_instance_v2" "instance" {
   flavor_name = var.flavor_name
   image_name = var.image_name
   key_pair = "ssh_key_pair"
-  user_data = file("terraform-first-boot.sh")
+  user_data = file("/home/marcello.meschini/FogAndCloudComputing/openstack/setup.sh")
   network {
     port = element(openstack_networking_port_v2.port.*.id, count.index)
+  }
+  provisioner "file" {
+    source      = "/home/marcello.meschini/FogAndCloudComputing/openstack/botnet/"
+    destination = "/home/centos"
+    connection {
+      type     = "ssh"
+      user     = "centos"
+      host     = element(openstack_networking_floatingip_v2.floatip.*.address, count.index)
+      private_key = file("/home/marcello.meschini/FogAndCloudComputing/openstack/id_rsa")
+    }
   }
 }
 
