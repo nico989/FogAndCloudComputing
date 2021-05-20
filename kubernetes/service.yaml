@@ -18,7 +18,13 @@ spec:
       containers:
       - image: nico989/mysql:v1
         name: mysql
-        resources: {}
+        resources:
+          requests:
+            memory: "350Mi"
+            cpu: "100m"
+          limits:
+            memory: "450Mi"
+            cpu: "150m"
         ports:
           - name: mysql-internal
             containerPort: 3306
@@ -31,7 +37,13 @@ spec:
             mountPath: /var/lib/mysql/
       - image: nico989/ubuntu-flask:v3
         name: ubuntu
-        resources: {}
+        resources:
+          requests:
+            memory: "100Mi"
+            cpu: "100m"
+          limits:
+            memory: "150Mi"
+            cpu: "150m"
         ports:
           - name: flask-internal
             containerPort: 5000
@@ -61,3 +73,16 @@ spec:
     targetPort: 5000
   selector:
     app: backend
+---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v1
+metadata:
+  name: hpa-backend
+spec:
+  maxReplicas: 3
+  minReplicas: 1
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend
+  targetCPUUtilizationPercentage: 30
