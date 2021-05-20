@@ -9,7 +9,10 @@ spec:
     name: mysql
     env:
       - name: MYSQL_ROOT_PASSWORD
-        value: "password"
+        valueFrom:
+          secretKeyRef:
+            name: secretdb
+            key: password
   - image: nico989/ubuntu-flask:v1
     name: ubuntu
     command: ["/bin/sleep", "3650d"]
