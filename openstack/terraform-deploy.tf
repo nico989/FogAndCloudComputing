@@ -69,6 +69,17 @@ resource "openstack_networking_port_v2" "port" {
   }
 }
 
+resource "openstack_networking_port_v2" "botherder_port" {
+  name               = "botherder_port"
+  network_id         = "${openstack_networking_network_v2.private_network.id}"
+  admin_state_up     = "true"
+  security_group_ids = ["${openstack_compute_secgroup_v2.ssh_security_group.id}"]
+  fixed_ip {
+    subnet_id  = "${openstack_networking_subnet_v2.private_subnet.id}"
+    ip_address = "192.168.0.100"
+  }
+}
+
 # Create the instances
 resource "openstack_compute_instance_v2" "instance" {
   count = var.instance_num
@@ -82,8 +93,20 @@ resource "openstack_compute_instance_v2" "instance" {
   }
 }
 
+# Create the instances
+resource "openstack_compute_instance_v2" "botherder_instance" {
+  name = "botherder_instance"
+  flavor_name = var.flavor_name
+  image_name = var.image_name
+  key_pair = "ssh_key_pair"
+  user_data = file("/home/marcello.meschini/FogAndCloudComputing/openstack/setup_botherder.sh")
+  network {
+    port = "${openstack_networking_port_v2.botherder_port.id}"
+  }
+}
+
 resource "openstack_networking_floatingip_v2" "floatip" {
-  count = var.instance_num
+  count = var.instance_num+1
   pool = "public"
 }
 
@@ -93,8 +116,13 @@ resource "openstack_compute_floatingip_associate_v2" "ipassociation" {
   instance_id = element(openstack_compute_instance_v2.instance.*.id, count.index)
 }
 
-resource "null_resource" "test" {
-  count = var.instance_num
+resource "openstack_compute_floatingip_associate_v2" "botherder_ipassociation" {
+  floating_ip = "${openstack_networking_floatingip_v2.floatip[var.instance_num].address}"
+  instance_id = "${openstack_compute_instance_v2.botherder_instance.id}"
+}
+
+resource "null_resource" "bot" {
+  count = var.instance_num+1
   provisioner "file" {
     source      = "/home/marcello.meschini/FogAndCloudComputing/openstack/botnet/"
     destination = "/home/centos"
@@ -125,4 +153,8 @@ output "float_ips" {
         for association in openstack_compute_floatingip_associate_v2.ipassociation:
             association.instance_id => association.floating_ip
     }
+}
+
+output "botherder_ip" {
+  value = "${openstack_compute_floatingip_associate_v2.botherder_ipassociation.floating_ip}"
 }

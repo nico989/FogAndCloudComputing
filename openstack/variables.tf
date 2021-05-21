@@ -1,6 +1,6 @@
 variable "instance_num" {
-    description = "number of instances to be created"
-    default  = 3
+    description = "number of bot instances to be created"
+    default  = 2
 }
 
 variable "image_name" {
