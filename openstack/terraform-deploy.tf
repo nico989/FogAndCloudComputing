@@ -80,7 +80,7 @@ resource "openstack_networking_port_v2" "botherder_port" {
   }
 }
 
-# Create the instances
+# Create the bot instances
 resource "openstack_compute_instance_v2" "instance" {
   count = var.instance_num
   name = format("%s_%02d", "instance", count.index+1)
@@ -93,7 +93,7 @@ resource "openstack_compute_instance_v2" "instance" {
   }
 }
 
-# Create the instances
+# Create the botherder instances
 resource "openstack_compute_instance_v2" "botherder_instance" {
   name = "botherder_instance"
   flavor_name = var.flavor_name
@@ -155,6 +155,10 @@ output "float_ips" {
     }
 }
 
-output "botherder_ip" {
+output "botherder_ floating_ip" {
   value = "${openstack_compute_floatingip_associate_v2.botherder_ipassociation.floating_ip}"
+}
+
+output "botherder_ private_ip" {
+  value = "${openstack_compute_instance_v2.botherder_instance.access_ip_v4}"
 }
