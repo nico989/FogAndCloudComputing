@@ -7,3 +7,6 @@
 # ignore terraform
 terraform.tfstate
 terraform.tfstate.backup
+
+# ignore kube-state-metrics repo
+kube-state-metrics-configs/

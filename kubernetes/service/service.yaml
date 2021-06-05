@@ -43,10 +43,10 @@ spec:
         resources:
           requests:
             memory: "350Mi"
-            cpu: "100m"
+            cpu: "150m"
           limits:
             memory: "450Mi"
-            cpu: "150m"
+            cpu: "250m"
         ports:
           - name: mysql-internal
             containerPort: 3306
@@ -65,10 +65,10 @@ spec:
         resources:
           requests:
             memory: "100Mi"
-            cpu: "100m"
+            cpu: "150m"
           limits:
             memory: "150Mi"
-            cpu: "150m"
+            cpu: "250m"
         ports:
           - name: flask-internal
             containerPort: 5000
@@ -110,4 +110,4 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: backend
-  targetCPUUtilizationPercentage: 30
+  targetCPUUtilizationPercentage: 50
