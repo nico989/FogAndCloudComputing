@@ -3,6 +3,10 @@
 11-arch-botnet-vs-cloud-infr.synctex.gz
 11-arch-botnet-vs-cloud-infr.log
 11-arch-botnet-vs-cloud-infr.aux
+11-report-botnet-vs-cloud-infr.pdf
+11-report-botnet-vs-cloud-infr.synctex.gz
+11-report-botnet-vs-cloud-infr.log
+11-report-botnet-vs-cloud-infr.aux
 
 # ignore terraform
 terraform.tfstate

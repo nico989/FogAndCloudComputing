@@ -1,0 +1,29 @@
+\documentclass[a4paper]{article}
+\usepackage{graphicx}
+\usepackage{caption}
+
+\title{Report: BOTNET vs CLOUD INFRASTRUCTURE}
+\author{Nicolò Vinci  \\
+	\and 
+	Marcello Meschini \\
+	}
+ \date{}
+% \date{June 7, 2021}
+
+\begin{document}
+
+\maketitle
+
+\section{Infrastructure as a Service}
+\label{iaas}
+The Openstack machine is used to simulate a botnet. To achieve this, first, we created a network in Openstack with its own subnet. Then we created a new security group to allow SSH connections. The next step was to create a router connected to the public network and to our subnet using an interface. Then we generated a single SSH key pair that we later associated with every instance to allow SSH connections.  As for the instances' images, we decided to use CentOS. This image asked for a minimum of 20GB of disk so, we used the m1.small flavor. Finally, we associated to each of the instances a floating IP. Then by creating a Terraform file, we automated the process. In particular, we used an external file containing input variables to allow easy customization of the deployment. For example, it is possible to set the number of bot instances, the image, and the flavor. The main Terraform file references these variables and uses the count meta argument to create multiple instances of some of the resources needed. 
+In the Terraform deployment we also used two null\_resources containing a file provisioner that copies the python files needed to run the botnet to the instances. Then by using the user\_data argument we created a script that installs python and starts the botnet python files. Finally, Terraform will output the value of the floating and private IPs after the deployment.
+Regarding the python scripts, we created two simple programs:
+\begin{itemize}
+\item bot\_herder.py: given a list of bot IPs, it sends messages to them in JSON format. There are three message types: attack, stop and close (to terminate the bots).
+\item bot.py: it creates a socket to the port 9999 and starts listening for incoming messages. When it receives an attack message it creates a thread spamming GET request to a specified host. Thus its simulate a DOS attack.
+\end{itemize}
+
+As stated in the draft, we were unsure if it was feasible to implement the whole botnet infrastructure on OpenStack using multiple instances or just create a single instance containing various docker containers. In the end, the OpenStack multi-instance implementation was successful even with the limited resources we had. In particular, the resources were enough to deploy a bot\_herder instance and three bot instances.
+
+\end{document}
