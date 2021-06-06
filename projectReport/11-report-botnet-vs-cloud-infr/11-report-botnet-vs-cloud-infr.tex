@@ -16,7 +16,7 @@
 
 \section{Infrastructure as a Service}
 \label{iaas}
-The Openstack machine is used to simulate a botnet. To achieve this, first, we created a network in Openstack with its own subnet. Then we created a new security group to allow SSH connections. The next step was to create a router connected to the public network and to our subnet using an interface. Then we generated a single SSH key pair that we later associated with every instance to allow SSH connections.  As for the instances' images, we decided to use CentOS. This image asked for a minimum of 20GB of disk so, we used the m1.small flavor. Finally, we associated to each of the instances a floating IP. Then by creating a Terraform file, we automated the process. In particular, we used an external file containing input variables to allow easy customization of the deployment. For example, it is possible to set the number of bot instances, the image, and the flavor. The main Terraform file references these variables and uses the count meta argument to create multiple instances of some of the resources needed. 
+The OpenStack machine is used to simulate a botnet. To achieve this, first, we created a network in OpenStack with its own subnet. Then we created a new security group to allow SSH connections. The next step was to create a router connected to the public network and to our subnet using an interface. Then we generated a single SSH key pair that we later associated with every instance to allow SSH connections.  As for the instances' images, we decided to use CentOS. This image asked for a minimum of 20GB of disk so, we used the m1.small flavor. Finally, we associated to each of the instances a floating IP. Then by creating a Terraform file, we automated the process. In particular, we used an external file containing input variables to allow easy customization of the deployment. For example, it is possible to set the number of bot instances, the image, and the flavor. The main Terraform file references these variables and uses the count meta argument to create multiple instances of some of the resources needed. 
 In the Terraform deployment we also used two null\_resources containing a file provisioner that copies the python files needed to run the botnet to the instances. Then by using the user\_data argument we created a script that installs python and starts the botnet python files. Finally, Terraform will output the value of the floating and private IPs after the deployment.
 Regarding the python scripts, we created two simple programs:
 \begin{itemize}
@@ -25,5 +25,32 @@ Regarding the python scripts, we created two simple programs:
 \end{itemize}
 
 As stated in the draft, we were unsure if it was feasible to implement the whole botnet infrastructure on OpenStack using multiple instances or just create a single instance containing various docker containers. In the end, the OpenStack multi-instance implementation was successful even with the limited resources we had. In particular, the resources were enough to deploy a bot\_herder instance and three bot instances.
+
+\section{Platform as a Service}
+\label{paas}
+On the Platform as a Service machine is deployed a simple backend service through Kubernetes. A cluster with three nodes is created, one is the control plane and the other two are workers. A deployment called \textit{backend} has been created in the default namespace. Inside it, a single Pod contains a MySQL and Ubuntu container. A custom image called \textit{nico989/mysql:v1} is pulled from Docker Hub to create the MySQL container. The custom image is created from a basic MySQL image plus an SQL script to create at boot a database \textit{test} with a table \textit{people} where some data are stored. Hence, the MySQL container is linked to a Persistent Volume Claim in order to save the database created at the first boot. Therefore, a Kubernetes secret is defined to pass the environmental variable \textit{MYSQL\_ROOT\_PASSWORD} to the MySQL container in a blurred way. The MySQL container is exposed internally in the Pod at port 3306. The second container is created from another custome image called \textit{nico989/ubuntu-flask:v3} and pulled from Docker Hub. It is based from a basic Ubuntu image plus python3, pip3 and a Flask application in order to have a web server with a single GET API to retrieve the data stored on the MySQL container. So, the Flask server starts at boot and it is exposed through the internal port 5000. At the end, a Kubernetes service is defined to expose to the external world the Flask server via port 30000. So, the Pod can be reached via an HTTP GET request exploiting any IP address of the three nodes and the port 30000.\\
+Two resource metrics are defined for each container in the Pod: CPU and memory. Moreover, a request and a limit are defined for each metric. The values are described in table \ref{res}. Regarding the unit of measure of the cpu, \textit{m} stands for \textit {millicores}. For example, a container with a request CPU of 0.5 is guaranteed half the CPU compared to one that requires 1 CPU. 0.5 is equivalent to 500m. A single Pod will use 500m and 600Mi at the limit.
+
+\begin{table}[h]
+\centering
+\caption{Container resources}
+\label{res}
+\begin{tabular}{|l|l|l|r|}
+\hline 
+resources\textbackslash container & MySQL & Ubuntu\\
+\hline 
+request CPU & 150m & 150m \\
+\hline
+limit CPU & 250m & 250m \\
+\hline
+request memory & 350Mi & 100Mi \\
+\hline
+limit memory & 450Mi & 150Mi \\
+\hline
+\end{tabular}
+\end{table}
+
+The deploy will be overladed with GET request by the botnet from the Infrastructure as a Service machine. An horizontal pod autoscaler is created to scale automatically the replica of the Pod when a certain CPU threshold will be exceeded. If the CPU of all the Pods overcomes the 500m, the autoscaler creates another replica. The autoscaler monitors the metrics through a Prometheus adapter deployed through helm in the namespace \textit{monitoring}. Also, a Prometheus operator and Grafana are deployed in the same namespace. So, the Prometheus operator monitors the metrics thanks to kube state metrics, then the Prometheus adapter provides those metrics to the entire cluster. At the end, the autoscaler exploits the metrics provided by the adapter to monitor and scale the deployment. Grafana is used only to display the metrics in a much clearer way.\\
+To sum up, the autoscaler is able to scale up or down the replicas monitoring a basic metric like CPU. However, custom metrics can be defined in the helm configuration file of the Prometheus adapter in order to have more reliable metrics.
 
 \end{document}
