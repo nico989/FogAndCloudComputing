@@ -1,0 +1,4 @@
+sum (rate (container_cpu_usage_seconds_total{pod=~".*backend.*",kubernetes_io_hostname=~"^$Node$"}[1m])) by (pod,kubernetes_io_hostname)
+sum (container_memory_working_set_bytes{pod=~".*backend.*",kubernetes_io_hostname=~"^$Node$"}) by (pod,kubernetes_io_hostname)
+sum (container_memory_working_set_bytes{pod_name=~"^$Deployment$Statefulset$Daemonset.*$", kubernetes_io_hostname=~"^$Node$"})
+sum (container_memory_working_set_bytes{pod_name=~"^$Deployment$Statefulset$Daemonset.*$", kubernetes_io_hostname=~"^$Node$"}) / sum (kube_node_status_allocatable_memory_bytes{node=~"^$Node.*$"}) * 100
